@@ -1,4 +1,4 @@
-# Outlook
+# WIP Outlook REST API Wrapper
 
 [![Build Status](https://travis-ci.org/molnarmark/Outlook.jl.svg?branch=master)](https://travis-ci.org/molnarmark/Outlook.jl)
 
