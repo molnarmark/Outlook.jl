@@ -25,9 +25,23 @@ type OutlookClient
     authentication::OutlookAuthentication
 
     function OutlookClient(email, id, secret)
-        println("Please open $(authurl(id)) in your browser to authenticate this application.")
-        client = new(email, id, secret)
-        start_auth_server(client)
-        client
+        if isfile("credentials.json")
+
+            open("credentials.json", "r") do file
+                creds = JSON.parse(readstring(file))
+                auth = OutlookAuthentication(creds["access_token"], creds["refresh_token"])
+                close(file)
+                client = new(email, id, secret, auth)
+                refresh_tokens(client)
+                client
+            end
+
+        else
+
+            println("Please open $(authurl(id)) in your browser to authenticate this application.")
+            client = new(email, id, secret)
+            start_auth_server(client)
+            client
+        end
     end
 end

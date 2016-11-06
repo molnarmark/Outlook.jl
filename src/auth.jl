@@ -15,6 +15,51 @@ function get_tokens(client::OutlookClient, authcode::AbstractString)
     )
 
     response = post(TOKEN, data=data)
-    tokens = JSON.parse(readall(response))
-    dump(tokens)
+    tokens = readall(response)
+    tokens_parsed = JSON.parse(tokens)
+
+    open("credentials.json", "w+") do file
+        write(file, tokens)
+        close(file)
+    end
+
+    access_token = tokens_parsed["access_token"]
+    refresh_token = tokens_parsed["refresh_token"]
+
+    auth = OutlookAuthentication(access_token, refresh_token)
+    client.authentication = auth
+    auth
 end
+
+function refresh_tokens(client::OutlookClient)
+    data = Dict(
+        "client_id" => clientid(client),
+        "redirect_uri" => get_redirect_uri(),
+        "grant_type" => "refresh_token",
+        "client_secret" => clientsecret(client),
+        "refresh_token" => refreshtoken(client)
+    )
+
+    response = post(TOKEN, data=data)
+    if statuscode(response) != 200
+        println("Couldnt authenticate. I removed your credentials.json file, restart your application and authenticate again!")
+        rm("credentials.json", force=true)
+        exit()
+    else
+        tokens = readall(response)
+        tokens_parsed = JSON.parse(tokens)
+
+        open("credentials.json", "w+") do file
+            write(file, tokens)
+            close(file)
+        end
+
+        access_token = tokens_parsed["access_token"]
+        refresh_token = tokens_parsed["refresh_token"]
+
+        auth = OutlookAuthentication(access_token, refresh_token)
+        client.authentication = auth
+    end
+end
+
+build_token(client::OutlookClient) = "Bearer " * accesstoken(client)
