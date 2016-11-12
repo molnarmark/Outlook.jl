@@ -1,21 +1,33 @@
 # Declaration order is important here, some types depend on eachother
 
 type OutlookAuthentication
-    authtoken::AbstractString
+    accesstoken::AbstractString
     refreshtoken::AbstractString
 
-    OutlookAuthentication(authtoken) = new(authtoken)
-    OutlookAuthentication(authtoken, refreshtoken) = new(authtoken, refreshtoken)
+    OutlookAuthentication(accesstoken) = new(accesstoken)
+    OutlookAuthentication(accesstoken, refreshtoken) = new(accesstoken, refreshtoken)
 end
 
 type OutlookMessage
-    # Todo
+    id::AbstractString
+    subject::AbstractString
+    draft::Bool
+    hasAttachments::Bool
+    fromAddress::AbstractString
+    fromName::AbstractString
+    body::AbstractString
+    isread::Bool
+    importance::AbstractString
 end
 
 type OutlookFolder
-    id::Integer
+    id::AbstractString
     name::AbstractString
-    messages::Dict{OutlookMessage}
+    parentFolder::AbstractString
+    itemCount::Integer
+    unreadItemCount::Integer
+    childFolderCount::Integer
+    messages::Array{OutlookMessage, 1}
 end
 
 type OutlookClient
@@ -23,25 +35,9 @@ type OutlookClient
     clientid::AbstractString
     clientsecret::AbstractString
     authentication::OutlookAuthentication
+    folders::Array{OutlookFolder, 1}
+end
 
-    function OutlookClient(email, id, secret)
-        if isfile("credentials.json")
-
-            open("credentials.json", "r") do file
-                creds = JSON.parse(readstring(file))
-                auth = OutlookAuthentication(creds["access_token"], creds["refresh_token"])
-                close(file)
-                client = new(email, id, secret, auth)
-                refresh_tokens(client)
-                client
-            end
-
-        else
-
-            println("Please open $(authurl(id)) in your browser to authenticate this application.")
-            client = new(email, id, secret)
-            start_auth_server(client)
-            client
-        end
-    end
+immutable OutlookException <: Exception
+    msg::AbstractString
 end

@@ -33,16 +33,16 @@ end
 
 function refresh_tokens(client::OutlookClient)
     data = Dict(
-        "client_id" => clientid(client),
-        "redirect_uri" => get_redirect_uri(),
-        "grant_type" => "refresh_token",
+        "client_id"     => clientid(client),
+        "redirect_uri"  => get_redirect_uri(),
+        "grant_type"    => "refresh_token",
         "client_secret" => clientsecret(client),
         "refresh_token" => refreshtoken(client)
     )
 
     response = post(TOKEN, data=data)
     if statuscode(response) != 200
-        println("Couldnt authenticate. I removed your credentials.json file, restart your application and authenticate again!")
+        println("Couldn't authenticate. I removed your credentials.json file, restart your application and authenticate again!")
         rm("credentials.json", force=true)
         exit()
     else
